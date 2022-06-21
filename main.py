@@ -1,11 +1,12 @@
 import enum
 
 from decouple import config
-from flask import Flask
+from flask import Flask, request
 from flask_migrate import Migrate
-from flask_restful import Api
+from flask_restful import Api, Resource
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
+from marshmallow import Schema, fields
 
 app = Flask(__name__)
 
@@ -21,13 +22,19 @@ api = Api(app)
 migrate = Migrate(app, db)
 
 
+class UserSignInSchema(Schema):
+    email = fields.Email()
+    password = fields.Str()
+    full_name = fields.Str()
+
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
     full_name = db.Column(db.String(255), nullable=False)
-    phone = db.Column(db.Text)
-    create_on = db.Column(db.DateTime, server_default=func.now())
+    phone_number = db.Column(db.Text)
+    created_on = db.Column(db.DateTime, server_default=func.now())
     updated_on = db.Column(db.DateTime, onupdate=func.now())
 
 
@@ -39,12 +46,12 @@ class ColorEnum(enum.Enum):
 
 
 class SizeEnum(enum.Enum):
-    xs = 'xs'
-    s = 's'
-    m = 'm'
-    l = 'l'
-    xl = 'xl'
-    xxl = 'xxl'
+    xs = 'XS'
+    s = 'S'
+    m = 'M'
+    l = 'L'
+    xl = 'XL'
+    xxl = 'XXL'
 
 
 class Clothes(db.Model):
@@ -52,13 +59,23 @@ class Clothes(db.Model):
     name = db.Column(db.String(255), nullable=False)
     color = db.Column(
         db.Enum(ColorEnum),
-        default=SizeEnum.s,
+        default=ColorEnum.white,
         nullable=False
     )
     photo = db.Column(db.String(255), nullable=False)
     created_on = db.Column(db.DateTime, server_default=func.now())
     updated_on = db.Column(db.DateTime, onupdate=func.now())
 
+
+class UserSignIn(Resource):
+    def post(self):
+        data = request.get_json()
+        user = User(**data)
+        db.session.add(user)
+        db.session.commit()
+        
+
+api.add_resource(UserSignIn, "/register/")
 
 if __name__ == "__main__":
     db.create_all()
