@@ -16,11 +16,13 @@ from werkzeug.security import generate_password_hash
 
 app = Flask(__name__)
 
+# using python-decouple to hide the credentials and sensitive info
 db_user = config('DB_USER')
 db_password = config('DB_PASSWORD')
 db_port = config('DB_PORT')
 db_name = config('DB_NAME')
 
+# configuring the SQLAlchemy ORM with the hidden data
 app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{db_user}:{db_password}@localhost:{db_port}/{db_name}'
 
 db = SQLAlchemy(app)
