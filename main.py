@@ -97,7 +97,7 @@ class UserSignInSchema(Schema):
     def validate_phone_number(self, phone_number):
         number = f"{phone_number}"
         try:
-            phone_number = phonenumbers.parse(number)
+            phonenumbers.parse(number)
         except NumberParseException:
             raise ValidationError("Please enter valid phone number!")
 
